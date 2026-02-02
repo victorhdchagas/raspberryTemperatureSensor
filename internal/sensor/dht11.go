@@ -2,76 +2,57 @@ package sensor
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os/exec"
 	"time"
 
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
-	"periph.io/x/conn/v3/gpio"
-	"periph.io/x/conn/v3/gpio/gpioreg"
-	"periph.io/x/devices/v3/dht"
-	"periph.io/x/host/v3"
 )
 
 type Reading struct {
-	Temp     float64
-	Humidity float64
-	Error    error
+	Temp     float64 `json:"temperature"`
+	Humidity float64 `json:"humidity"`
+	Error    *string `json:"error"`
 }
 
 type DHT11 struct {
-	pin     gpio.PinIO
-	device  *dht.Device
 	pinName string
 }
 
 func NewDHT11(pinName string) (*DHT11, error) {
-	if _, err := host.Init(); err != nil {
-		return nil, fmt.Errorf("failed to initialize periph: %w", err)
-	}
-
-	p := gpioreg.ByName(pinName)
-	if p == nil {
-		// Try adding "GPIO" prefix if it's just a number
-		p = gpioreg.ByName("GPIO" + pinName)
-		if p == nil {
-			return nil, fmt.Errorf("failed to find pin: %s", pinName)
-		}
-	}
-
-	d, err := dht.New(p, dht.DHT11)
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize DHT11: %w", err)
-	}
-
+	// We no longer need periph.io here.
 	return &DHT11{
-		pin:     p,
-		device:  d,
 		pinName: pinName,
 	}, nil
 }
 
 func (d *DHT11) Read() (temp, humidity float64, err error) {
-	var env dht.Environmental
-	if err := d.device.Sense(&env); err != nil {
-		return 0, 0, fmt.Errorf("sensor read error: %w", err)
+	// Execute the Python script
+	cmd := exec.Command("python3", "scripts/read_sensor.py", d.pinName)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to execute python script: %v (output: %s)", err, string(output))
 	}
 
-	temperature := float64(env.Temperature.Celsius())
-	humidityVal := float64(env.Humidity) / 100000.0 // periph.io returns humidity in milli-percent? No, usually it's a special type.
+	var reading Reading
+	if err := json.Unmarshal(output, &reading); err != nil {
+		return 0, 0, fmt.Errorf("failed to parse python output: %v (output: %s)", err, string(output))
+	}
 
-	// Let's check periph.io DHT environmental struct.
-	// Actually, env.Humidity is of type physic.RelativeHumidity.
-	// To get percentage: float64(env.Humidity) / float64(physic.PercentRH)
+	if reading.Error != nil && *reading.Error != "" {
+		return 0, 0, fmt.Errorf("sensor error: %s", *reading.Error)
+	}
 
-	return temperature, humidityVal, nil
+	return reading.Temp, reading.Humidity, nil
 }
 
 func (d *DHT11) Start(ctx context.Context, interval time.Duration, database *db.Database) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
-	log.Printf("Sensor collector started: reading every %v from GPIO pin %s", interval, d.pinName)
+	log.Printf("Sensor collector started (via Python wrapper): reading every %v from GPIO pin %s", interval, d.pinName)
 
 	initialRead := func() {
 		temp, humidity, err := d.Read()
