@@ -14,8 +14,8 @@ bash scripts/build-local.sh
 ```
 
 ✅ **Primeira leitura imediata** ao iniciar o serviço!
-
-**⚠️ Importante:** O serviço roda como `root` para garantir acesso ao GPIO.
+⏹️ **Para o serviço** antes de copiar binário (evita erro "Text file busy")
+⚠️ **Importante:** O serviço roda como `root` para garantir acesso ao GPIO.
 
 ### Opção 2: Deploy Remoto (via SSH)
 

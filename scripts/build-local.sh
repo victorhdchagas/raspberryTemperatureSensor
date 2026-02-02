@@ -18,6 +18,9 @@ go build -o ${APP_NAME} ./cmd/server
 echo "Creating target directory..."
 sudo mkdir -p ${APP_PATH}
 
+echo "Stopping service if running..."
+sudo systemctl stop ${APP_NAME} 2>/dev/null || true
+
 echo "Copying files..."
 sudo cp ${APP_NAME} ${APP_PATH}/
 sudo cp -r static ${APP_PATH}/
@@ -49,8 +52,8 @@ sudo systemctl daemon-reload
 echo "Enabling service..."
 sudo systemctl enable ${APP_NAME}
 
-echo "Restarting service..."
-sudo systemctl restart ${APP_NAME}
+echo "Starting service..."
+sudo systemctl start ${APP_NAME}
 
 echo ""
 echo "Build and deploy complete!"

@@ -12,9 +12,10 @@ bash scripts/build-local.sh
 O script irá:
 1. ✅ Fazer `git pull` para atualizar o código
 2. ✅ Build do binário com nome `mysensoringo`
-3. ✅ Copiar para `/opt/mysensoringo/`
-4. ✅ Criar e configurar serviço systemd
-5. ✅ Reiniciar o serviço automaticamente
+3. ⏹️ **Parar o serviço** (se estiver rodando)
+4. ✅ Copiar para `/opt/mysensoringo/`
+5. ✅ Criar e configurar serviço systemd
+6. ✅ **Iniciar o serviço automaticamente**
 
 ## Comportamento do Sensor
 
