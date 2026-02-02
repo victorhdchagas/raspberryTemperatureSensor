@@ -55,24 +55,30 @@ func (d *DHT11) Start(ctx context.Context, interval time.Duration, database *db.
 
 	log.Printf("Sensor collector started: reading every %v from GPIO pin %d", interval, d.pin)
 
+	initialRead := func() {
+		temp, humidity, err := d.Read()
+		if err != nil {
+			log.Printf("Error reading sensor: %v", err)
+			return
+		}
+
+		if err := database.InsertMetric(temp, humidity); err != nil {
+			log.Printf("Error inserting metric: %v", err)
+			return
+		}
+
+		log.Printf("Metric saved: Temp=%.1f°C, Humidity=%.1f%%", temp, humidity)
+	}
+
+	initialRead()
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Sensor collector stopped")
 			return
 		case <-ticker.C:
-			temp, humidity, err := d.Read()
-			if err != nil {
-				log.Printf("Error reading sensor: %v", err)
-				continue
-			}
-
-			if err := database.InsertMetric(temp, humidity); err != nil {
-				log.Printf("Error inserting metric: %v", err)
-				continue
-			}
-
-			log.Printf("Metric saved: Temp=%.1f°C, Humidity=%.1f%%", temp, humidity)
+			initialRead()
 		}
 	}
 }

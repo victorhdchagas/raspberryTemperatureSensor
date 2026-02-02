@@ -1,55 +1,101 @@
-# Telemetry Service - Quick Start
+# MySensorIngo - Sistema de Telemetria Térmica
 
-## Quick Deploy (Recommended)
+Sistema em Go para monitoramento de temperatura e umidade com sensor DHT11 no Raspberry Pi.
 
-The easiest way to deploy is to compile directly on the Raspberry Pi:
+## 🚀 Deploy Rápido
+
+### Opção 1: Deploy Local (Recomendado)
+
+Execute diretamente no Raspberry Pi:
 
 ```bash
-# From your development machine
+cd /opt/mysensoringo
+bash scripts/build-local.sh
+```
+
+✅ **Primeira leitura imediata** ao iniciar o serviço!
+
+### Opção 2: Deploy Remoto (via SSH)
+
+```bash
 bash scripts/deploy.sh
 ```
 
-This will:
-1. Copy source files to the Pi
-2. Build the binary on the Pi (requires Go installed)
-3. Deploy and start the service
+## 📋 Funcionalidades
 
-## Manual Deployment
+- 🌡️ **Leitura de sensor:** DHT11 via GPIO (primeira leitura imediata + 50min)
+- 📊 **Dashboard web:** Gráficos, histórico e calendário térmico
+- 🗄️ **SQLite3:** Armazenamento local com retenção de 30 dias
+- 🧹 **Auto-limpeza:** Worker que deleta dados antigos diariamente
+- 📝 **Notas pessoais:** Sistema de rating (1-5 estrelas) e observações
 
-If you prefer to build on the Pi manually:
+## 📡 API Endpoints
+
+| Endpoint | Método | Descrição |
+|----------|---------|-------------|
+| `/api/current` | GET | Última leitura do sensor |
+| `/api/history` | GET | Histórico por período |
+| `/api/stats/hot-days` | GET | Dias mais quentes |
+| `/api/feeling` | POST | Salvar sensação do dia |
+
+## 🔧 Configuração
+
+Editar `internal/config/config.go` para alterar:
+- Pino GPIO: padrão = 4 (BCM)
+- Intervalo de leitura: padrão = 50 minutos
+- Porta HTTP: padrão = 8080
+- Path do banco: padrão = `./data/telemetry.db`
+
+## 📱 Dashboard
+
+Acesse em:
+```
+http://<ip-do-raspberry>:8080
+```
+
+## 🛠️ Instalação Completa
+
+Veja `DEPLOY_LOCAL.md` para instruções detalhadas.
+
+## 🏗️ Desenvolvimento
 
 ```bash
-# SSH into the Pi
-ssh pi@raspberrypi.local
+# Instalar dependências
+go mod download
 
-# Clone the project
-git clone <your-repo-url> /opt/telemetry-service
-cd /opt/telemetry-service
-
-# Install dependencies and build
-sudo apt update
-sudo apt install -y git gcc build-essential
+# Build local (para testes)
 go build -o telemetry-server ./cmd/server
+./telemetry-server
 
-# Setup service
-sudo cp configs/telemetry-service.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable telemetry-service
-sudo systemctl start telemetry-service
+# Cross-compile (complexo, requer GCC ARM)
+GOOS=linux GOARCH=arm GOARM=7 go build -o telemetry-server ./cmd/server
 ```
 
-## Access Dashboard
+## 📁 Estrutura
 
-Open your browser and navigate to:
 ```
-http://raspberrypi.local:8080
+├── cmd/server/         # Entry point
+├── internal/
+│   ├── config/         # Configurações
+│   ├── db/           # SQLite3 + migrations
+│   ├── sensor/       # DHT11 reader (primeira leitura imediata)
+│   ├── api/          # Endpoints REST
+│   └── maintenance/   # Worker de limpeza
+├── pkg/web/          # Arquivos estáticos
+├── static/           # Dashboard (HTML/JS + Tailwind + Chart.js)
+└── scripts/
+    ├── build.sh       # Build cross-platform
+    ├── build-local.sh # Build + deploy local
+    └── deploy.sh     # Deploy remoto via SSH
 ```
 
-## Cross-Compilation Limitations
+## ⚙️ Requisitos
 
-This project uses `d2r2/go-dht` which requires CGO for GPIO access. Cross-compilation is not straightforward because:
-- Requires `arm-linux-gnueabihf-gcc` compiler
-- May need additional cross-compilation setup
+- Go 1.21+
+- GCC (para CGO)
+- Raspberry Pi com DHT11 no GPIO 4
+- systemd
 
-**Recommendation:** Build directly on the Raspberry Pi for simplicity.
-# raspberryTemperatureSensor
+## 📝 Nota Importante
+
+O sensor faz a **primeira leitura imediatamente** ao iniciar, seguida por leituras a cada 50 minutos (configurável).
