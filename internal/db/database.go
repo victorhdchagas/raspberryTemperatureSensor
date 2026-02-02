@@ -3,6 +3,8 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Database struct {

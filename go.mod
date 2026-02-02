@@ -2,7 +2,10 @@ module github.com/wutachi/raspberryTemperatureSensor
 
 go 1.25.5
 
-require github.com/d2r2/go-dht v0.0.0-20200119175940-4ba96621a218
+require (
+	github.com/d2r2/go-dht v0.0.0-20200119175940-4ba96621a218
+	github.com/mattn/go-sqlite3 v1.14.33
+)
 
 require (
 	github.com/d2r2/go-logger v0.0.0-20210606094344-60e9d1233e22 // indirect
