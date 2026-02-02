@@ -4,7 +4,7 @@ Objetivo: Criar uma aplicação em Go que monitore um sensor DHT11, armazene dad
 
 ## Stack Tecnológica
 
-- **Backend:** Go + d2r2/go-dht (GPIO)
+- **Backend:** Go + Python script (scripts/read_sensor.py)
 - **Frontend:** HTML/JS + Tailwind CSS (CDN) + Chart.js
 - **Banco:** SQLite3
 - **Deploy:** Cross-compile ARM7 + SCP + systemd
@@ -45,59 +45,6 @@ Objetivo: Criar uma aplicação em Go que monitore um sensor DHT11, armazene dad
 - **Cross-compile:** GOOS=linux GOARCH=arm GOARM=7
 - **Script de deploy:** scp + reiniciar serviço systemd
 
-## Checklist de Tarefas
-
-### 📦 Fase 1 - Infraestrutura (Tasks 1-3)
-
-- [x] Task 1: Configurar estrutura do projeto Go (go mod, diretórios cmd, internal, pkg, web)
-- [x] Task 2: Implementar schema do SQLite3 e sistema de migrations (script interno)
-- [x] Task 3: Criar tabelas: raw_metrics, daily_summaries, user_logs
-
-### 🌡️ Fase 2 - Sensor & Coleta (Tasks 4-5)
-
-- [x] Task 4: Implementar leitura do sensor DHT11 via GPIO usando d2r2/go-dht
-- [x] Task 5: Criar goroutine coletora que lê sensor a cada 50 min com tratamento de erro
-
-### 🔌 Fase 3 - Backend API (Tasks 6-9)
-
-- [x] Task 6: Implementar API GET /api/current (última leitura + status)
-- [x] Task 7: Implementar API GET /api/history (filtro por período)
-- [x] Task 8: Implementar API GET /api/stats/hot-days (dias com maiores médias)
-- [x] Task 9: Implementar API POST /api/feeling (salvar rating e nota)
-
-### 🧹 Fase 4 - Maintenance (Tasks 10-12)
-
-- [x] Task 10: Criar worker background de maintenance (rodar a cada 24h)
-- [x] Task 11: Implementar lógica de cálculo de médias diárias e inserção em daily_summaries
-- [x] Task 12: Implementar deleção de raw_metrics com mais de 30 dias
-
-### 🎨 Fase 5 - Frontend (Tasks 13-16)
-
-- [x] Task 13: Criar frontend HTML/JS com Tailwind CSS (CDN)
-- [x] Task 14: Implementar Calendário Térmico (GitHub contribution graph style)
-- [x] Task 15: Adicionar filtros de data e gráficos de linha (Chart.js)
-- [x] Task 16: Implementar modal de notas para adicionar/editar rating (1-5 estrelas)
-
-### 🚀 Fase 6 - Build & Deploy (Tasks 17-18)
-
-- [x] Task 17: Configurar cross-compile para GOOS=linux GOARCH=arm GOARM=7
-- [x] Task 18: Criar script de deploy (scp + reiniciar serviço systemd)
-
-## Sensor Setup
-
-- **Pino GPIO:** D4 (conforme teste_sensor.py)
-- **Sensor:** DHT11
-- **Biblioteca Python (referência):** adafruit_dht
-
-## Status Atual
-
-**Progresso:** 18/18 tarefas concluídas ✅
-
-**Última atualização:** 2026-02-01
-
-## Estrutura do Projeto
-
-```
 raspberryTemperatureSensor/
 ├── cmd/
 │   └── server/
@@ -128,6 +75,70 @@ raspberryTemperatureSensor/
 │   └── telemetry-server       # Binário compilado
 ├── go.mod
 ├── go.sum
-├── LLMREADME.MD
-└── DEPLOY.md
+# Sistema de Telemetria Térmica e Bem-Estar
+
+Monitoramento de sensor DHT11 usando uma ponte Go + Python, armazenamento em SQLite3 e dashboard web.
+
+## Stack Tecnológica
+
+- **Backend:** Go (Servidor API e Regras de Negócio)
+- **Sensor:** Python 3 + `adafruit-circuitpython-dht` (Ponte de leitura)
+- **Frontend:** HTML/JS + Tailwind CSS (CDN) + Chart.js
+- **Banco:** SQLite3
+- **Deploy:** Binário Go + Scripts Python + systemd (Raspberry Pi)
+
+## Arquitetura de Leitura (Python Wrapper)
+
+Devido a instabilidades em bibliotecas nativas de Go para o DHT11, o sistema utiliza um script Python como ponte:
+1. O servidor Go executa `python3 scripts/read_sensor.py <GPIO>`.
+2. O script Python utiliza `Adafruit_Blinka` para acessar os pinos e retorna um JSON.
+3. O Go processa o JSON e salva no banco de dados.
+
+**Pino Padrão:** GPIO17 (Físico 11)
+
+## Estrutura do Projeto
+
 ```
+raspberryTemperatureSensor/
+├── cmd/server/main.go      # Ponto de entrada (Servidor HTTP)
+├── internal/
+│   ├── api/handler.go      # Endpoints REST
+│   ├── config/config.go    # Configurações (GPIO, Intervalos)
+│   ├── db/database.go      # Persistência SQLite3
+│   ├── sensor/dht11.go     # Lógica de chamada da ponte Python
+│   └── maintenance/        # Worker de limpeza de logs antigos
+├── scripts/
+│   ├── read_sensor.py      # Script Python (leitura real do sensor)
+│   └── build-gpio17.sh     # Script oficial de build e deploy
+├── static/index.html       # Dashboard Frontend
+└── data/telemetry.db       # Banco de dados (gerado automaticamente)
+```
+
+## Guia de Operação (Manual)
+
+### 1. Requisitos no Raspberry Pi
+É necessário instalar as dependências de hardware para o Python:
+```bash
+sudo pip3 install Adafruit-Blinka adafruit-circuitpython-dht --break-system-packages
+```
+
+### 2. Build e Deploy
+Sempre use o script oficial para garantir que todas as partes (Go e Python) sejam movidas para `/opt/mysensoringo`:
+```bash
+./scripts/build-gpio17.sh
+```
+
+### 3. Verificação
+- **Logs do Serviço:** `sudo journalctl -u mysensoringo -f`
+- **Dashboard:** Acesse `http://<ip-do-raspberry>:8080`
+
+## Endpoints Principais
+- `GET /api/current`: Última temperatura e umidade.
+- `GET /api/history`: Histórico completo para os gráficos.
+- `POST /api/feeling`: Salvar sensação térmica subjetiva (1-5 estrelas).
+
+## Manutenção Automática
+O sistema possui um worker que roda a cada 24h para:
+1. Consolidar médias diárias em `daily_summaries`.
+2. Remover dados brutos (`raw_metrics`) com mais de 30 dias.
+└── DEPLOY.md
