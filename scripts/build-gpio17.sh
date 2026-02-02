@@ -7,20 +7,21 @@ APP_PATH=/opt/${APP_NAME}
 
 echo "=== Build com GPIO 17 (Solução para erro pin 4) ==="
 
-echo "Mudando configuração para GPIO 17..."
-cd /opt/mysensoringo
-
-# Criar backup
-cp internal/config/config.go internal/config/config.go.backup 2>/dev/null || true
-
-# Mudar pino GPIO de "4" para "17"
-sed -i 's/GPIO: "4"/GPIO: "17"/g' internal/config/config.go
-
-echo "✅ Configuração mudada para GPIO 17 (Physical Pin 11)"
-echo ""
 
 echo "Pulling latest changes..."
 git pull
+
+echo "Checking dependencies..."
+if ! command -v go &> /dev/null; then
+    echo "❌ Erro: Go não está instalado."
+    exit 1
+fi
+
+if ! python3 -c "import adafruit_dht" &> /dev/null; then
+    echo "❌ Erro: Biblioteca Python 'adafruit-circuitpython-dht' não encontrada."
+    echo "   Por favor, execute: pip3 install adafruit-circuitpython-dht"
+    exit 1
+fi
 
 echo "Building binary..."
 go build -o ${APP_NAME} ./cmd/server
@@ -34,6 +35,7 @@ sudo systemctl stop ${APP_NAME} 2>/dev/null || true
 echo "Copying files..."
 sudo cp ${APP_NAME} ${APP_PATH}/
 sudo cp -r static ${APP_PATH}/
+sudo cp -r scripts ${APP_PATH}/
 
 echo "Setting permissions..."
 sudo chmod +x ${APP_PATH}/${APP_NAME}

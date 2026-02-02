@@ -27,7 +27,7 @@ type SensorConfig struct {
 }
 
 func Load() *Config {
-	gpioPin := "4"
+	gpioPin := "17"
 	if envPin := os.Getenv("SENSOR_GPIO_PIN"); envPin != "" {
 		gpioPin = envPin
 	}
