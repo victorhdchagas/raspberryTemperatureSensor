@@ -1,0 +1,24 @@
+{
+  "name": "raspberrytemperaturesensor",
+  "version": "1.0.0",
+  "description": "Sistema em Go para monitoramento de temperatura e umidade com sensor DHT11 no Raspberry Pi.",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/tailwind.css --minify",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/victorhdchagas/raspberryTemperatureSensor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/victorhdchagas/raspberryTemperatureSensor/issues"
+  },
+  "homepage": "https://github.com/victorhdchagas/raspberryTemperatureSensor#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.15"
+  }
+}
