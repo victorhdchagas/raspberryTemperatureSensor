@@ -17,9 +17,9 @@ if ! command -v go &> /dev/null; then
     exit 1
 fi
 
-if ! python3 -c "import adafruit_dht" &> /dev/null; then
-    echo "❌ Erro: Biblioteca Python 'adafruit-circuitpython-dht' não encontrada."
-    echo "   Por favor, execute: pip3 install adafruit-circuitpython-dht"
+if ! python3 -c "import board; import adafruit_dht" &> /dev/null; then
+    echo "❌ Erro: Dependências Python não encontradas."
+    echo "   Por favor, execute: pip3 install Adafruit-Blinka adafruit-circuitpython-dht"
     exit 1
 fi
 
