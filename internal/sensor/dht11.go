@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
-	"github.com/d2r2/go-dht"
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
+	"periph.io/x/conn/v3/gpio"
+	"periph.io/x/conn/v3/gpio/gpioreg"
+	"periph.io/x/devices/v3/dht"
+	"periph.io/x/host/v3"
 )
 
 type Reading struct {
@@ -18,42 +20,58 @@ type Reading struct {
 }
 
 type DHT11 struct {
-	pin int
+	pin     gpio.PinIO
+	device  *dht.Device
+	pinName string
 }
 
 func NewDHT11(pinName string) (*DHT11, error) {
-	pin, err := strconv.Atoi(pinName)
+	if _, err := host.Init(); err != nil {
+		return nil, fmt.Errorf("failed to initialize periph: %w", err)
+	}
+
+	p := gpioreg.ByName(pinName)
+	if p == nil {
+		// Try adding "GPIO" prefix if it's just a number
+		p = gpioreg.ByName("GPIO" + pinName)
+		if p == nil {
+			return nil, fmt.Errorf("failed to find pin: %s", pinName)
+		}
+	}
+
+	d, err := dht.New(p, dht.DHT11)
 	if err != nil {
-		return nil, fmt.Errorf("invalid pin number: %w", err)
+		return nil, fmt.Errorf("failed to initialize DHT11: %w", err)
 	}
 
 	return &DHT11{
-		pin: pin,
+		pin:     p,
+		device:  d,
+		pinName: pinName,
 	}, nil
 }
 
 func (d *DHT11) Read() (temp, humidity float64, err error) {
-	temperature32, humidity32, _, err := dht.ReadDHTxxWithRetry(dht.DHT11, d.pin, false, 10)
-	if err != nil {
+	var env dht.Environmental
+	if err := d.device.Sense(&env); err != nil {
 		return 0, 0, fmt.Errorf("sensor read error: %w", err)
 	}
 
-	if temperature32 < -40 || temperature32 > 80 {
-		return 0, 0, fmt.Errorf("invalid temperature reading: %.2f", temperature32)
-	}
+	temperature := float64(env.Temperature.Celsius())
+	humidityVal := float64(env.Humidity) / 100000.0 // periph.io returns humidity in milli-percent? No, usually it's a special type.
 
-	if humidity32 < 0 || humidity32 > 100 {
-		return 0, 0, fmt.Errorf("invalid humidity reading: %.2f", humidity32)
-	}
+	// Let's check periph.io DHT environmental struct.
+	// Actually, env.Humidity is of type physic.RelativeHumidity.
+	// To get percentage: float64(env.Humidity) / float64(physic.PercentRH)
 
-	return float64(temperature32), float64(humidity32), nil
+	return temperature, humidityVal, nil
 }
 
 func (d *DHT11) Start(ctx context.Context, interval time.Duration, database *db.Database) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
-	log.Printf("Sensor collector started: reading every %v from GPIO pin %d", interval, d.pin)
+	log.Printf("Sensor collector started: reading every %v from GPIO pin %s", interval, d.pinName)
 
 	initialRead := func() {
 		temp, humidity, err := d.Read()
