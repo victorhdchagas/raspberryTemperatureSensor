@@ -15,6 +15,8 @@ bash scripts/build-local.sh
 
 ✅ **Primeira leitura imediata** ao iniciar o serviço!
 
+**⚠️ Importante:** O serviço roda como `root` para garantir acesso ao GPIO.
+
 ### Opção 2: Deploy Remoto (via SSH)
 
 ```bash
@@ -40,11 +42,18 @@ bash scripts/deploy.sh
 
 ## 🔧 Configuração
 
+### Opção 1: Via código
 Editar `internal/config/config.go` para alterar:
 - Pino GPIO: padrão = 4 (BCM)
 - Intervalo de leitura: padrão = 50 minutos
 - Porta HTTP: padrão = 8080
 - Path do banco: padrão = `./data/telemetry.db`
+
+### Opção 2: Via variável de ambiente
+```bash
+export SENSOR_GPIO_PIN=17  # Muda pino para GPIO 17
+bash scripts/build-local.sh
+```
 
 ## 📱 Dashboard
 
@@ -56,6 +65,19 @@ http://<ip-do-raspberry>:8080
 ## 🛠️ Instalação Completa
 
 Veja `DEPLOY_LOCAL.md` para instruções detalhadas.
+
+## ⚠️ Troubleshooting
+
+Se encontrar erro "failed to export pin 4":
+- Veja `TROUBLESHOOTING.md` para soluções completas
+- O serviço roda como `root` para evitar problemas de permissão
+- Se necessário, mude para outro pino (ex: GPIO 17)
+
+## 📝 Documentação Adicional
+
+- `DEPLOY_LOCAL.md` - Guia de instalação local
+- `TROUBLESHOOTING.md` - Solução de problemas GPIO
+- `UPDATE.md` - Atualizações importantes
 
 ## 🏗️ Desenvolvimento
 
@@ -93,8 +115,15 @@ GOOS=linux GOARCH=arm GOARM=7 go build -o telemetry-server ./cmd/server
 
 - Go 1.21+
 - GCC (para CGO)
-- Raspberry Pi com DHT11 no GPIO 4
+- Raspberry Pi com DHT11
 - systemd
+- Permissões de root (serviço roda como root)
+
+## 📌 Notas GPIO
+
+- GPIO 4 (BCM) é padrão, mas pode conflitar com 1-Wire
+- Recomenda GPIO 17 (physical pin 11) se houver problemas
+- O serviço roda como `root` para garantir acesso ao GPIO
 
 ## 📝 Nota Importante
 

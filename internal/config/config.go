@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"time"
 )
 
@@ -26,6 +27,11 @@ type SensorConfig struct {
 }
 
 func Load() *Config {
+	gpioPin := "4"
+	if envPin := os.Getenv("SENSOR_GPIO_PIN"); envPin != "" {
+		gpioPin = envPin
+	}
+
 	return &Config{
 		Server: ServerConfig{
 			Port:         ":8080",
@@ -36,7 +42,7 @@ func Load() *Config {
 			Path: "./data/telemetry.db",
 		},
 		Sensor: SensorConfig{
-			GPIO:     "4",
+			GPIO:     gpioPin,
 			Interval: 50 * time.Minute,
 		},
 	}

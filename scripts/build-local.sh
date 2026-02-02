@@ -33,7 +33,7 @@ After=network.target
 
 [Service]
 Type=simple
-User=pi
+User=root
 WorkingDirectory=${APP_PATH}
 ExecStart=${APP_PATH}/${APP_NAME}
 Restart=always

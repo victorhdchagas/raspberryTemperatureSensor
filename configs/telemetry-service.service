@@ -1,14 +1,14 @@
 [Unit]
-Description=Telemetry Service - DHT11 Sensor Monitor
-After=network.target
+ Description=Telemetry Service - DHT11 Sensor Monitor
+ After=network.target
 
 [Service]
-Type=simple
-User=pi
-WorkingDirectory=/opt/telemetry-service
-ExecStart=/opt/telemetry-service/telemetry-server
-Restart=always
-RestartSec=10
+ Type=simple
+ User=root
+ WorkingDirectory=/opt/telemetry-service
+ ExecStart=/opt/telemetry-service/telemetry-server
+ Restart=always
+ RestartSec=10
 
 [Install]
-WantedBy=multi-user.target
+ WantedBy=multi-user.target
