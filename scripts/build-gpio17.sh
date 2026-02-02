@@ -19,7 +19,7 @@ fi
 
 if ! python3 -c "import board; import adafruit_dht" &> /dev/null; then
     echo "❌ Erro: Dependências Python não encontradas."
-    echo "   Por favor, execute: pip3 install Adafruit-Blinka adafruit-circuitpython-dht"
+    echo "   Por favor, execute: pip3 install Adafruit-Blinka adafruit-circuitpython-dht --break-system-packages"
     exit 1
 fi
 
