@@ -2,22 +2,55 @@
 
 Sistema em Go para monitoramento de temperatura e umidade com sensor DHT11 no Raspberry Pi.
 
-## 🚀 Deploy Rápido
+## 🚀 Deploy Rápido (RESOLVIDO GPIO 4)
 
-### Opção 1: Deploy Local (Recomendado)
+### ⚠️ PROBLEMA: GPIO 4 não funciona!
 
-Execute diretamente no Raspberry Pi:
+**Razão:** GPIO 4 conflita com sistema 1-Wise do Raspberry Pi (conflito de hardware).
+
+### ✅ SOLUÇÃO RÁPIDA (Recomendada)
+
+Execute este comando no Raspberry Pi:
+
+```bash
+cd /opt/mysensoringo
+bash scripts/build-gpio17.sh
+```
+
+**E MUDAR O CONECTOR FÍSICO:**
+- Mova o fio **DATA** do DHT11
+- De: **Pin 7** (GPIO 4)
+- Para: **Pin 11** (GPIO 17)
+
+```
+DHT11       Raspberry Pi
+---------   ---------------
+VCC   -----> Pin 1  (3.3V)
+GND   -----> Pin 6  (GND)
+DATA  -----> Pin 11 (GPIO 17) ← MUDAR!
+```
+
+### Outras Opções
+
+#### Opção 2: Deploy Normal (GPIO 4 - Pode não funcionar)
 
 ```bash
 cd /opt/mysensoringo
 bash scripts/build-local.sh
 ```
 
-✅ **Primeira leitura imediata** ao iniciar o serviço!
-⏹️ **Para o serviço** antes de copiar binário (evita erro "Text file busy")
-⚠️ **Importante:** O serviço roda como `root` para garantir acesso ao GPIO.
+#### Opção 3: Deploy Remoto (via SSH)
 
-### Opção 2: Deploy Remoto (via SSH)
+```bash
+bash scripts/deploy.sh
+```
+
+#### Opção 4: Testar Pinos Automaticamente
+
+```bash
+cd /opt/mysensoringo
+bash scripts/fix-gpio.sh
+```
 
 ```bash
 bash scripts/deploy.sh
@@ -42,16 +75,39 @@ bash scripts/deploy.sh
 
 ## 🔧 Configuração
 
-### Opção 1: Via código
-Editar `internal/config/config.go` para alterar:
-- Pino GPIO: padrão = 4 (BCM)
-- Intervalo de leitura: padrão = 50 minutos
-- Porta HTTP: padrão = 8080
-- Path do banco: padrão = `./data/telemetry.db`
+### Pinos GPIO (IMPORTANTE!)
 
-### Opção 2: Via variável de ambiente
+| GPIO | Physical | Status | Uso |
+|-------|----------|---------|------|
+| 4 | Pin 7 | ❌ **Conflita 1-Wise** - Não usar |
+| 17 | Pin 11 | ✅ **Recomendado** - Use este! |
+| 18 | Pin 12 | ✅ Funciona (mas pode conflitar áudio) |
+| 27 | Pin 13 | ✅ Funciona |
+| 22 | Pin 15 | ✅ Funciona |
+
+### Mudar Pino GPIO
+
+#### Opção 1: Via script (Recomendado)
 ```bash
-export SENSOR_GPIO_PIN=17  # Muda pino para GPIO 17
+cd /opt/mysensoringo
+bash scripts/fix-gpio.sh  # Testa e muda automaticamente
+# OU
+bash scripts/build-gpio17.sh  # Usa GPIO 17 diretamente
+```
+
+#### Opção 2: Via código
+Editar `internal/config/config.go`:
+```go
+Sensor: SensorConfig{
+    GPIO:     "17",  // MUDAR DE "4" PARA "17"
+    Interval: 50 * time.Minute,
+},
+```
+
+#### Opção 3: Via variável de ambiente
+```bash
+export SENSOR_GPIO_PIN=17
+cd /opt/mysensoringo
 bash scripts/build-local.sh
 ```
 
@@ -119,11 +175,25 @@ GOOS=linux GOARCH=arm GOARM=7 go build -o telemetry-server ./cmd/server
 - systemd
 - Permissões de root (serviço roda como root)
 
-## 📌 Notas GPIO
+## 📌 Notas GPIO Importantes
 
-- GPIO 4 (BCM) é padrão, mas pode conflitar com 1-Wire
-- Recomenda GPIO 17 (physical pin 11) se houver problemas
-- O serviço roda como `root` para garantir acesso ao GPIO
+### Por que GPIO 4 não funciona?
+
+O **GPIO 4 (BCM)** é usado automaticamente pelo **sistema 1-Wise** do Raspberry Pi para sensores de temperatura DS18B20. Isso é um conflito de hardware que não pode ser resolvido apenas com permissões.
+
+### Solução: Usar GPIO 17
+
+GPIO 17 (physical pin 11) é seguro e não conflita com nenhum sistema do Raspberry Pi.
+
+### Conexão DHT11 com GPIO 17
+
+```
+DHT11       Raspberry Pi
+---------   ---------------
+VCC   -----> Pin 1  (3.3V)
+GND   -----> Pin 6  (GND)
+DATA  -----> Pin 11 (GPIO 17) ← MUDAR DE PIN 7
+```
 
 ## 📝 Nota Importante
 
