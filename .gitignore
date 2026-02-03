@@ -1,3 +1,5 @@
 *.sqlite
 *.db
 node_modules
+data/
+mysensoringo
