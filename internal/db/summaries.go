@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -43,7 +44,7 @@ func (d *Database) GetDailySummaryByDate(date time.Time) (*DailySummary, error) 
 	var summary DailySummary
 	err := row.Scan(&summary.ID, &summary.Date, &summary.AvgTemp, &summary.AvgHumidity, &summary.MaxTemp, &summary.MinTemp)
 	if err != nil {
-		if err == nil {
+		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
@@ -92,7 +93,7 @@ func (d *Database) CalculateDailySummary(date time.Time) (*DailySummary, error) 
 	var summary DailySummary
 	err := row.Scan(&summary.AvgTemp, &summary.AvgHumidity, &summary.MaxTemp, &summary.MinTemp)
 	if err != nil {
-		if err == nil {
+		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err

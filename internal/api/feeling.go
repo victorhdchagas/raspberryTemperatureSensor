@@ -1,38 +1,46 @@
 package api
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
 )
-
-type FeelingRequest struct {
-	Date       string `json:"date"`
-	Rating     int    `json:"rating"`
-	Note       string `json:"note"`
-	FeelingTag string `json:"feeling_tag"`
-}
 
 type FeelingResponse struct {
 	Message string `json:"message"`
 }
 
 func (h *Handler) postFeeling(w http.ResponseWriter, r *http.Request) {
-	var req FeelingRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := r.ParseForm(); err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	if req.Rating < 1 || req.Rating > 5 {
+	dateStr := r.FormValue("date")
+	ratingStr := r.FormValue("rating")
+	note := r.FormValue("note")
+	feelingTag := r.FormValue("feeling_tag")
+
+	if dateStr == "" || ratingStr == "" {
+		respondError(w, http.StatusBadRequest, "date and rating are required")
+		return
+	}
+
+	rating, err := strconv.Atoi(ratingStr)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid rating value")
+		return
+	}
+
+	if rating < 1 || rating > 5 {
 		respondError(w, http.StatusBadRequest, "Rating must be between 1 and 5")
 		return
 	}
 
-	date, err := time.Parse("2006-01-02", req.Date)
+	date, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
 		respondError(w, http.StatusBadRequest, "Invalid date format (use YYYY-MM-DD)")
 		return
@@ -40,9 +48,9 @@ func (h *Handler) postFeeling(w http.ResponseWriter, r *http.Request) {
 
 	userLog := db.UserLog{
 		Date:       date,
-		Rating:     req.Rating,
-		Note:       req.Note,
-		FeelingTag: req.FeelingTag,
+		Rating:     rating,
+		Note:       note,
+		FeelingTag: feelingTag,
 	}
 
 	if err := h.db.InsertUserLog(userLog); err != nil {
