@@ -1,0 +1,71 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Chip Gradient: Cyan to Purple -->
+    <linearGradient id="chipGradient" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+
+    <!-- Temperature Gradient: Neon Orange to Pink -->
+    <linearGradient id="heatGradient" x1="0" y1="400" x2="0" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f97316" /> <!-- Neon Orange -->
+      <stop offset="100%" stop-color="#ec4899" /> <!-- Neon Pink -->
+    </linearGradient>
+    
+    <!-- Subtle Glow for the Temperature Icon -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background: Dark Slate with Rounded Corners (App Icon Style) -->
+  <!-- You can remove this rect if you want a transparent background -->
+  <rect width="512" height="512" rx="100" fill="#0f172a" />
+
+  <!-- MAIN CHIP SILHOUETTE -->
+  <!-- We use a single path to create the central square and the pins to ensure they scale well as a unit -->
+  <g fill="url(#chipGradient)">
+    <!-- Top Pins (Staggered GPIO abstraction) -->
+    <rect x="176" y="60" width="40" height="40" rx="8" />
+    <rect x="236" y="60" width="40" height="40" rx="8" />
+    <rect x="296" y="60" width="40" height="40" rx="8" />
+    
+    <!-- Bottom Pins -->
+    <rect x="176" y="412" width="40" height="40" rx="8" />
+    <rect x="236" y="412" width="40" height="40" rx="8" />
+    <rect x="296" y="412" width="40" height="40" rx="8" />
+
+    <!-- Left Pins -->
+    <rect x="60" y="176" width="40" height="40" rx="8" />
+    <rect x="60" y="236" width="40" height="40" rx="8" />
+    <rect x="60" y="296" width="40" height="40" rx="8" />
+
+    <!-- Right Pins -->
+    <rect x="412" y="176" width="40" height="40" rx="8" />
+    <rect x="412" y="236" width="40" height="40" rx="8" />
+    <rect x="412" y="296" width="40" height="40" rx="8" />
+
+    <!-- Central Chip Body -->
+    <rect x="120" y="120" width="272" height="272" rx="48" />
+  </g>
+
+  <!-- TEMPERATURE ICON -->
+  <!-- Simplified Thermometer for maximum legibility at 16x16 -->
+  <g filter="url(#glow)">
+    <!-- Stem -->
+    <path d="M236 180 L276 180 L276 310 C276 334.09 256.09 354 232 354 C207.91 354 188 334.09 188 310 L188 180 L228 180" fill="white" opacity="0.1"/> <!-- Background for depth -->
+    
+    <!-- Bulb -->
+    <circle cx="256" cy="330" r="50" fill="url(#heatGradient)" />
+    
+    <!-- Stem (Active) -->
+    <rect x="236" y="180" width="40" height="140" rx="20" fill="url(#heatGradient)" />
+  </g>
+
+  <!-- DECORATIVE DETAIL: Data/Heat Wave -->
+  <!-- A subtle curve inside the thermometer to suggest 'active monitoring' -->
+  <path d="M236 230 C236 230 256 230 276 230" stroke="#0f172a" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+  <path d="M236 260 C236 260 256 260 276 260" stroke="#0f172a" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+
+</svg>
