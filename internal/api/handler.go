@@ -23,5 +23,7 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/history", h.getHistory)
 	mux.HandleFunc("GET /api/stats/hot-days", h.getHotDays)
 	mux.HandleFunc("GET /api/stats/hot-days/html", h.getHotDaysHTML)
+	mux.HandleFunc("GET /api/contribution", h.getContributionGraph)
+	mux.HandleFunc("GET /api/day/{date}", h.getDayDetails)
 	mux.HandleFunc("POST /api/feeling", h.postFeeling)
 }

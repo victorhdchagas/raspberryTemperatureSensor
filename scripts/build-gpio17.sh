@@ -2,6 +2,8 @@
 
 set -e
 
+export PATH=/usr/local/go/bin:$PATH
+
 APP_NAME=mysensoringo
 APP_PATH=/opt/${APP_NAME}
 
