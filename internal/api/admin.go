@@ -15,15 +15,19 @@ func (h *Handler) generateSummaries(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Generating summaries from %s to %s", start.Format("2006-01-02"), end.Format("2006-01-02"))
 
-	if err := h.db.CreateSummariesForRange(start, end); err != nil {
+	created, err := h.db.CreateSummariesForRange(start, end)
+	if err != nil {
 		log.Printf("Error generating summaries: %v", err)
 		respondError(w, http.StatusInternalServerError, "Failed to generate summaries")
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]string{
+	log.Printf("Created %d summaries", len(created))
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
 		"message": "Summaries generated successfully",
 		"start":   start.Format("2006-01-02"),
 		"end":     end.Format("2006-01-02"),
+		"count":   len(created),
 	})
 }

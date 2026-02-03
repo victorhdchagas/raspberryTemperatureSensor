@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"log"
 	"time"
 )
 
@@ -82,10 +81,10 @@ func (d *Database) CalculateDailySummary(date time.Time) (*DailySummary, error) 
 
 	row := d.db.QueryRow(
 		`SELECT 
-			AVG(temp) as avg_temp,
-			AVG(humidity) as avg_humidity,
-			MAX(temp) as max_temp,
-			MIN(temp) as min_temp
+			COALESCE(AVG(temp), 0) as avg_temp,
+			COALESCE(AVG(humidity), 0) as avg_humidity,
+			COALESCE(MAX(temp), 0) as max_temp,
+			COALESCE(MIN(temp), 0) as min_temp
 		FROM raw_metrics 
 		WHERE timestamp >= ? AND timestamp < ?`,
 		start, end,
@@ -104,37 +103,41 @@ func (d *Database) CalculateDailySummary(date time.Time) (*DailySummary, error) 
 	return &summary, nil
 }
 
-func (d *Database) CreateSummaryForDateIfNotExists(date time.Time) error {
+func (d *Database) CreateSummaryForDateIfNotExists(date time.Time) (bool, error) {
 	summary, err := d.GetDailySummaryByDate(date)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if summary != nil {
-		return nil
+		return false, nil
 	}
 
 	calculatedSummary, err := d.CalculateDailySummary(date)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	if calculatedSummary != nil {
+	if calculatedSummary != nil && calculatedSummary.AvgTemp > 0 {
 		if err := d.InsertDailySummary(*calculatedSummary); err != nil {
-			return err
+			return false, err
 		}
-		log.Printf("Daily summary created for %v: AvgTemp=%.2f°C, AvgHumidity=%.2f%%",
-			date.Format("2006-01-02"), calculatedSummary.AvgTemp, calculatedSummary.AvgHumidity)
+		return true, nil
 	}
 
-	return nil
+	return false, nil
 }
 
-func (d *Database) CreateSummariesForRange(start, end time.Time) error {
+func (d *Database) CreateSummariesForRange(start, end time.Time) ([]string, error) {
+	var created []string
 	for date := start; !date.After(end); date = date.AddDate(0, 0, 1) {
-		if err := d.CreateSummaryForDateIfNotExists(date); err != nil {
-			log.Printf("Error creating summary for %v: %v", date, err)
+		wasCreated, err := d.CreateSummaryForDateIfNotExists(date)
+		if err != nil {
+			return created, err
+		}
+		if wasCreated {
+			created = append(created, date.Format("2006-01-02"))
 		}
 	}
-	return nil
+	return created, nil
 }

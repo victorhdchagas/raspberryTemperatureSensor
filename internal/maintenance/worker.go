@@ -68,20 +68,13 @@ func (w *Worker) runMaintenance() error {
 }
 
 func (w *Worker) CreateSummaryForDate(date time.Time) error {
-	summary, err := w.db.CalculateDailySummary(date)
+	wasCreated, err := w.db.CreateSummaryForDateIfNotExists(date)
 	if err != nil {
-		log.Printf("Error calculating daily summary for %v: %v", date, err)
+		log.Printf("Error creating summary for %v: %v", date, err)
 		return err
 	}
-
-	if summary != nil {
-		if err := w.db.InsertDailySummary(*summary); err != nil {
-			log.Printf("Error inserting daily summary: %v", err)
-			return err
-		}
-		log.Printf("Daily summary created for %v: AvgTemp=%.2f°C, AvgHumidity=%.2f%%",
-			date.Format("2006-01-02"), summary.AvgTemp, summary.AvgHumidity)
+	if wasCreated {
+		log.Printf("Daily summary created for %v", date.Format("2006-01-02"))
 	}
-
 	return nil
 }
