@@ -26,4 +26,5 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/contribution", h.getContributionGraph)
 	mux.HandleFunc("GET /api/day/{date}", h.getDayDetails)
 	mux.HandleFunc("POST /api/feeling", h.postFeeling)
+	mux.HandleFunc("POST /api/admin/generate-summaries", h.generateSummaries)
 }

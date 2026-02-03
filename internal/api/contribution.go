@@ -65,6 +65,10 @@ func (h *Handler) getDayDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.db.CreateSummaryForDateIfNotExists(date); err != nil {
+		log.Printf("Error creating daily summary: %v", err)
+	}
+
 	summary, err := h.db.GetDailySummaryByDate(date)
 	if err != nil {
 		log.Printf("Error getting daily summary: %v", err)

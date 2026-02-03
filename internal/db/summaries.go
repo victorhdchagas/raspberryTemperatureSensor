@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -101,4 +102,39 @@ func (d *Database) CalculateDailySummary(date time.Time) (*DailySummary, error) 
 
 	summary.Date = date
 	return &summary, nil
+}
+
+func (d *Database) CreateSummaryForDateIfNotExists(date time.Time) error {
+	summary, err := d.GetDailySummaryByDate(date)
+	if err != nil {
+		return err
+	}
+
+	if summary != nil {
+		return nil
+	}
+
+	calculatedSummary, err := d.CalculateDailySummary(date)
+	if err != nil {
+		return err
+	}
+
+	if calculatedSummary != nil {
+		if err := d.InsertDailySummary(*calculatedSummary); err != nil {
+			return err
+		}
+		log.Printf("Daily summary created for %v: AvgTemp=%.2f°C, AvgHumidity=%.2f%%",
+			date.Format("2006-01-02"), calculatedSummary.AvgTemp, calculatedSummary.AvgHumidity)
+	}
+
+	return nil
+}
+
+func (d *Database) CreateSummariesForRange(start, end time.Time) error {
+	for date := start; !date.After(end); date = date.AddDate(0, 0, 1) {
+		if err := d.CreateSummaryForDateIfNotExists(date); err != nil {
+			log.Printf("Error creating summary for %v: %v", date, err)
+		}
+	}
+	return nil
 }

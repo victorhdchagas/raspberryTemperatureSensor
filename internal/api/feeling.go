@@ -46,6 +46,10 @@ func (h *Handler) postFeeling(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := h.db.CreateSummaryForDateIfNotExists(date); err != nil {
+		log.Printf("Error creating daily summary: %v", err)
+	}
+
 	userLog := db.UserLog{
 		Date:       date,
 		Rating:     rating,

@@ -66,3 +66,22 @@ func (w *Worker) runMaintenance() error {
 	log.Println("Maintenance completed")
 	return nil
 }
+
+func (w *Worker) CreateSummaryForDate(date time.Time) error {
+	summary, err := w.db.CalculateDailySummary(date)
+	if err != nil {
+		log.Printf("Error calculating daily summary for %v: %v", date, err)
+		return err
+	}
+
+	if summary != nil {
+		if err := w.db.InsertDailySummary(*summary); err != nil {
+			log.Printf("Error inserting daily summary: %v", err)
+			return err
+		}
+		log.Printf("Daily summary created for %v: AvgTemp=%.2f°C, AvgHumidity=%.2f%%",
+			date.Format("2006-01-02"), summary.AvgTemp, summary.AvgHumidity)
+	}
+
+	return nil
+}
