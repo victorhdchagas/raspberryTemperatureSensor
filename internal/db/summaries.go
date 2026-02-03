@@ -37,7 +37,7 @@ func (d *Database) GetHotDays(limit int) ([]DailySummary, error) {
 
 func (d *Database) GetDailySummaryByDate(date time.Time) (*DailySummary, error) {
 	row := d.db.QueryRow(
-		"SELECT id, date, avg_temp, avg_humidity, max_temp, min_temp FROM daily_summaries WHERE date = ?",
+		"SELECT id, date, avg_temp, avg_humidity, max_temp, min_temp FROM daily_summaries WHERE DATE(date) = ?",
 		date.Format("2006-01-02"),
 	)
 
@@ -55,8 +55,8 @@ func (d *Database) GetDailySummaryByDate(date time.Time) (*DailySummary, error) 
 
 func (d *Database) GetDailySummariesByRange(start, end time.Time) ([]DailySummary, error) {
 	rows, err := d.db.Query(
-		"SELECT id, date, avg_temp, avg_humidity, max_temp, min_temp FROM daily_summaries WHERE date >= ? AND date <= ? ORDER BY date ASC",
-		start, end,
+		"SELECT id, date, avg_temp, avg_humidity, max_temp, min_temp FROM daily_summaries WHERE DATE(date) >= ? AND DATE(date) <= ? ORDER BY date ASC",
+		start.Format("2006-01-02"), end.Format("2006-01-02"),
 	)
 	if err != nil {
 		return nil, err
