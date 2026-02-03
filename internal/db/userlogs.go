@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func (d *Database) GetUserLogByDate(date time.Time) (*UserLog, error) {
 	var log UserLog
 	err := row.Scan(&log.ID, &log.Date, &log.Rating, &log.Note, &log.FeelingTag)
 	if err != nil {
-		if err == nil {
+		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err

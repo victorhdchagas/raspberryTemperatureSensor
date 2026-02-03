@@ -1,4 +1,4 @@
-import { generateContributionGraph } from './calendar.js';
+import { generateContributionGraph, closeModal } from './calendar.js';
 
 let currentRating = 0;
 
@@ -17,15 +17,32 @@ export function setRating(rating) {
     });
 }
 
-export function initFeelingForm() {
-    document.getElementById('feelingDate').valueAsDate = new Date();
+export function openFeelingModal(date = null) {
+    document.getElementById('feelingModal').classList.remove('hidden');
+    document.getElementById('feelingModal').classList.add('flex');
+    
+    if (date) {
+        document.getElementById('feelingDate').value = date;
+    } else {
+        document.getElementById('feelingDate').valueAsDate = new Date();
+    }
+    
     setRating(0);
+}
 
+export function closeFeelingModal() {
+    document.getElementById('feelingModal').classList.add('hidden');
+    document.getElementById('feelingModal').classList.remove('flex');
+    document.getElementById('feelingForm').reset();
+    setRating(0);
+}
+
+export function initFeelingForm() {
     document.getElementById('feelingForm').addEventListener('htmx:afterRequest', function(evt) {
         if (evt.detail.xhr.status === 200) {
             alert('Sensação salva com sucesso!');
-            document.getElementById('feelingForm').reset();
-            setRating(0);
+            closeFeelingModal();
+            closeModal();
             generateContributionGraph();
         }
     });

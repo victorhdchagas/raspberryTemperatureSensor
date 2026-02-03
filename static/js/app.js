@@ -2,6 +2,7 @@ import './global.js';
 import { generateContributionGraph } from './calendar.js';
 import { loadHistory } from './history.js';
 import { initFeelingForm } from './feeling.js';
+import { initSettingsForm } from './settings.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const endDate = new Date();
@@ -12,4 +13,5 @@ document.addEventListener('DOMContentLoaded', () => {
     generateContributionGraph();
     loadHistory();
     initFeelingForm();
+    initSettingsForm();
 });

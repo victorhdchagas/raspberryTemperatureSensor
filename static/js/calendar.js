@@ -57,46 +57,65 @@ export function openDayModal(date) {
     document.getElementById('modalDate').textContent = new Date(date).toLocaleDateString('pt-BR');
     document.getElementById('modalContent').innerHTML = '<p class="text-gray-400">Carregando...</p>';
 
-    fetchAPI(`/api/day/${date}`)
-        .then(data => {
-            const contentDiv = document.getElementById('modalContent');
-            
-            if (!data || data.message) {
-                contentDiv.innerHTML = '<p class="text-gray-400">Sem dados disponíveis para este dia</p>';
-                return;
-            }
+    Promise.all([
+        fetchAPI(`/api/day/${date}`),
+        fetchAPI(`/api/feeling?date=${date}`)
+    ])
+    .then(([dayData, feelingData]) => {
+        const contentDiv = document.getElementById('modalContent');
+        
+        if (!dayData || dayData.message) {
+            contentDiv.innerHTML = '<p class="text-gray-400">Sem dados disponíveis para este dia</p>';
+            return;
+        }
 
-            const formattedDate = new Date(data.date + 'T00:00:00').toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+        const formattedDate = new Date(dayData.date + 'T00:00:00').toLocaleDateString('pt-BR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
 
-            contentDiv.innerHTML = `
-                <div class="space-y-3">
-                    <p class="text-gray-300 text-sm">${formattedDate}</p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gray-700 rounded p-3">
-                            <p class="text-xs text-gray-400 mb-1">Média</p>
-                            <p class="text-2xl font-bold text-green-400">${data.avg_temp.toFixed(1)}°C</p>
-                        </div>
-                        <div class="bg-gray-700 rounded p-3">
-                            <p class="text-xs text-gray-400 mb-1">Máxima</p>
-                            <p class="text-2xl font-bold text-red-400">${data.max_temp.toFixed(1)}°C</p>
-                        </div>
-                        <div class="bg-gray-700 rounded p-3">
-                            <p class="text-xs text-gray-400 mb-1">Mínima</p>
-                            <p class="text-2xl font-bold text-blue-400">${data.min_temp.toFixed(1)}°C</p>
-                        </div>
-                        <div class="bg-gray-700 rounded p-3">
-                            <p class="text-xs text-gray-400 mb-1">Umidade</p>
-                            <p class="text-2xl font-bold text-purple-400">${data.avg_humidity.toFixed(0)}%</p>
-                        </div>
+        let feelingHTML = '';
+        if (feelingData && feelingData.rating) {
+            feelingHTML = `
+                <div class="mt-4 pt-4 border-t border-gray-600">
+                    <p class="text-sm text-gray-400 mb-2">Sensação Registrada</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-yellow-400 text-2xl">${'★'.repeat(feelingData.rating)}</span>
+                        <span class="text-gray-300">${feelingData.rating}/5</span>
                     </div>
+                    ${feelingData.tag ? `<p class="text-sm text-blue-400 mt-2">🏷️ ${feelingData.tag}</p>` : ''}
+                    ${feelingData.note ? `<p class="text-sm text-gray-300 mt-2">${feelingData.note}</p>` : ''}
                 </div>
             `;
-        });
+        }
+
+        contentDiv.innerHTML = `
+            <div class="space-y-3">
+                <p class="text-gray-300 text-sm">${formattedDate}</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-700 rounded p-3">
+                        <p class="text-xs text-gray-400 mb-1">Média</p>
+                        <p class="text-2xl font-bold text-green-400">${dayData.avg_temp.toFixed(1)}°C</p>
+                    </div>
+                    <div class="bg-gray-700 rounded p-3">
+                        <p class="text-xs text-gray-400 mb-1">Máxima</p>
+                        <p class="text-2xl font-bold text-red-400">${dayData.max_temp.toFixed(1)}°C</p>
+                    </div>
+                    <div class="bg-gray-700 rounded p-3">
+                        <p class="text-xs text-gray-400 mb-1">Mínima</p>
+                        <p class="text-2xl font-bold text-blue-400">${dayData.min_temp.toFixed(1)}°C</p>
+                    </div>
+                    <div class="bg-gray-700 rounded p-3">
+                        <p class="text-xs text-gray-400 mb-1">Umidade</p>
+                        <p class="text-2xl font-bold text-purple-400">${dayData.avg_humidity.toFixed(0)}%</p>
+                    </div>
+                </div>
+                ${feelingHTML}
+            </div>
+        `;
+    });
 }
 
 export function closeModal() {

@@ -50,9 +50,9 @@ func (h *Handler) getCurrentHTML(w http.ResponseWriter, r *http.Request) {
 	}
 
 	html := `
-		<p class="text-4xl font-bold text-green-400 mb-2">` + formatFloat(metric.Temp) + `°C</p>
-		<p class="text-2xl text-blue-400">` + formatFloat(metric.Humidity) + `%</p>
-		<p class="text-sm text-gray-400 mt-2">` + metric.Timestamp.Format("02/01/2006 15:04:05") + `</p>
+		<p class="text-6xl font-bold text-green-400 mb-1">` + formatFloat(metric.Temp) + `°C</p>
+		<p class="text-3xl text-blue-400 mb-3">` + formatFloat(metric.Humidity) + `%</p>
+		<p class="text-sm text-gray-400">` + metric.Timestamp.Format("02/01/2006 15:04:05") + `</p>
 	`
 	respondHTML(w, http.StatusOK, html)
 }

@@ -9,6 +9,13 @@ import (
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
 )
 
+type FeelingRequest struct {
+	Date       string `json:"date"`
+	Rating     int    `json:"rating"`
+	Note       string `json:"note"`
+	FeelingTag string `json:"feeling_tag"`
+}
+
 type FeelingResponse struct {
 	Message string `json:"message"`
 }
@@ -65,5 +72,38 @@ func (h *Handler) postFeeling(w http.ResponseWriter, r *http.Request) {
 
 	respondJSON(w, http.StatusOK, FeelingResponse{
 		Message: "Feeling saved successfully",
+	})
+}
+
+func (h *Handler) getFeelingByDate(w http.ResponseWriter, r *http.Request) {
+	dateStr := r.URL.Query().Get("date")
+	if dateStr == "" {
+		respondError(w, http.StatusBadRequest, "date parameter is required")
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		respondError(w, http.StatusBadRequest, "Invalid date format (use YYYY-MM-DD)")
+		return
+	}
+
+	feeling, err := h.db.GetUserLogByDate(date)
+	if err != nil {
+		log.Printf("Error getting user log: %v", err)
+		respondError(w, http.StatusInternalServerError, "Failed to get feeling")
+		return
+	}
+
+	if feeling == nil {
+		respondJSON(w, http.StatusOK, nil)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"rating": feeling.Rating,
+		"note":   feeling.Note,
+		"tag":    feeling.FeelingTag,
+		"date":   feeling.Date.Format("2006-01-02"),
 	})
 }

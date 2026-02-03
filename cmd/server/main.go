@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/wutachi/raspberryTemperatureSensor/internal/api"
+	"github.com/wutachi/raspberryTemperatureSensor/internal/app"
 	"github.com/wutachi/raspberryTemperatureSensor/internal/config"
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
 	"github.com/wutachi/raspberryTemperatureSensor/internal/maintenance"
@@ -43,7 +44,8 @@ func main() {
 	maintenanceWorker := maintenance.NewWorker(database)
 	go maintenanceWorker.Start(context.Background(), 24*time.Hour)
 
-	apiHandler := api.NewHandler(database)
+	appConfig := app.NewConfig()
+	apiHandler := api.NewHandler(database, appConfig)
 
 	mux := http.NewServeMux()
 	apiHandler.RegisterRoutes(mux)

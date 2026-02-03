@@ -113,13 +113,38 @@
             </div>
         </div>
 
-        <div class="bg-gray-800 rounded-lg p-6">
-            <h2 class="text-xl font-semibold mb-4">Registre Sua Sensação</h2>
-            <form id="feelingForm" hx-post="/api/feeling" hx-swap="none" class="space-y-4">
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">Data</label>
-                    <input type="date" id="feelingDate" name="date" required class="bg-gray-700 rounded px-3 py-2 text-white w-full">
+        <div class="flex gap-4 mb-8">
+            <button onclick="openFeelingModal()" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded text-white flex items-center gap-2">
+                <span>★</span>
+                <span>Registre Sua Sensação</span>
+            </button>
+            <button onclick="openSettingsModal()" class="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded text-white flex items-center gap-2">
+                <span>⚙️</span>
+                <span>Configurações</span>
+            </button>
+        </div>
+        </div>
+
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-semibold mb-4">Histórico de Temperatura</h2>
+                <div class="mb-6 flex gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Data Início</label>
+                        <input type="datetime-local" id="startDate" class="bg-gray-700 rounded px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Data Fim</label>
+                        <input type="datetime-local" id="endDate" class="bg-gray-700 rounded px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">&nbsp;</label>
+                        <button onclick="loadHistory()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white">Carregar</button>
+                    </div>
                 </div>
+                <div class="p-4 bg-gray-700 rounded">
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </div>
                 <div>
                     <label class="block text-sm text-gray-400 mb-1">Rating (1-5)</label>
                     <div id="ratingStars" class="flex gap-2">
@@ -152,6 +177,58 @@
                 <button onclick="closeModal()" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded text-white">Fechar</button>
                 <button onclick="editFeeling()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white">Editar</button>
             </div>
+        </div>
+    </div>
+
+    <div id="feelingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-semibold mb-4">Registre Sua Sensação</h3>
+            <form id="feelingForm" hx-post="/api/feeling" hx-swap="none" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Data</label>
+                    <input type="date" id="feelingDate" name="date" required class="bg-gray-700 rounded px-3 py-2 text-white w-full">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Rating (1-5)</label>
+                    <div id="ratingStars" class="flex gap-2">
+                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(1)">★</span>
+                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(2)">★</span>
+                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(3)">★</span>
+                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(4)">★</span>
+                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(5)">★</span>
+                    </div>
+                    <input type="hidden" id="feelingRating" name="rating" value="0">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Nota</label>
+                    <textarea id="feelingNote" name="note" class="bg-gray-700 rounded px-3 py-2 text-white w-full" rows="3"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Tag (opcional)</label>
+                    <input type="text" id="feelingTag" name="feeling_tag" class="bg-gray-700 rounded px-3 py-2 text-white w-full" placeholder="ex: confortável, quente, frio">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded text-white flex-1">Salvar</button>
+                    <button type="button" onclick="closeFeelingModal()" class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded text-white flex-1">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-semibold mb-4">Configurações</h3>
+            <form id="settingsForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Intervalo de Leitura do Sensor (minutos)</label>
+                    <input type="number" id="sensorInterval" name="sensorInterval" min="1" max="1440" required class="bg-gray-700 rounded px-3 py-2 text-white w-full">
+                    <p class="text-xs text-gray-500 mt-1">Entre 1 e 1440 minutos (24 horas)</p>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded text-white flex-1">Salvar</button>
+                    <button type="button" onclick="closeSettingsModal()" class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded text-white flex-1">Cancelar</button>
+                </div>
+            </form>
         </div>
     </div>
 

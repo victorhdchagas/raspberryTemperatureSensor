@@ -50,9 +50,9 @@ func (h *Handler) getHotDaysHTML(w http.ResponseWriter, r *http.Request) {
 	for _, day := range summaries {
 		html += `
 			<div class="bg-gray-700 rounded p-4">
-				<p class="font-semibold text-yellow-400">` + day.Date.Format("02/01/2006") + `</p>
-				<p class="text-2xl font-bold">` + formatFloat(day.AvgTemp) + `°C</p>
-				<p class="text-sm text-gray-400">Média</p>
+				<p class="text-sm text-gray-400 mb-2">` + day.Date.Format("02/01/2006") + `</p>
+				<p class="text-4xl font-bold text-yellow-400">` + formatFloat(day.AvgTemp) + `°C</p>
+				<p class="text-sm text-gray-400 mt-2">Média</p>
 				<p class="text-sm text-gray-400">Max: ` + formatFloat(day.MaxTemp) + `°C | Min: ` + formatFloat(day.MinTemp) + `°C</p>
 			</div>
 		`
