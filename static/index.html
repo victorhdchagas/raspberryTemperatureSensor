@@ -86,7 +86,7 @@
 
         <div class="bg-gray-800 rounded-lg p-6 mb-8">
             <h2 class="text-xl font-semibold mb-4">Histórico de Temperatura</h2>
-            <div class="mb-4 flex gap-4">
+            <div class="mb-6 flex gap-4">
                 <div>
                     <label class="block text-sm text-gray-400 mb-1">Data Início</label>
                     <input type="datetime-local" id="startDate" class="bg-gray-700 rounded px-3 py-2 text-white">
@@ -100,7 +100,9 @@
                     <button onclick="loadHistory()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white">Carregar</button>
                 </div>
             </div>
-            <canvas id="historyChart"></canvas>
+            <div class="p-4 bg-gray-700 rounded">
+                <canvas id="historyChart"></canvas>
+            </div>
         </div>
 
         <div class="bg-gray-800 rounded-lg p-6 mb-8">
@@ -122,50 +124,6 @@
                 <span>⚙️</span>
                 <span>Configurações</span>
             </button>
-        </div>
-        </div>
-
-            <div class="bg-gray-800 rounded-lg p-6">
-                <h2 class="text-xl font-semibold mb-4">Histórico de Temperatura</h2>
-                <div class="mb-6 flex gap-4">
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-1">Data Início</label>
-                        <input type="datetime-local" id="startDate" class="bg-gray-700 rounded px-3 py-2 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-1">Data Fim</label>
-                        <input type="datetime-local" id="endDate" class="bg-gray-700 rounded px-3 py-2 text-white">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-1">&nbsp;</label>
-                        <button onclick="loadHistory()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white">Carregar</button>
-                    </div>
-                </div>
-                <div class="p-4 bg-gray-700 rounded">
-                    <canvas id="historyChart"></canvas>
-                </div>
-            </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">Rating (1-5)</label>
-                    <div id="ratingStars" class="flex gap-2">
-                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(1)">★</span>
-                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(2)">★</span>
-                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(3)">★</span>
-                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(4)">★</span>
-                        <span class="cursor-pointer text-3xl text-gray-500 hover:text-yellow-400" onclick="setRating(5)">★</span>
-                    </div>
-                    <input type="hidden" id="feelingRating" name="rating" value="0">
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">Nota</label>
-                    <textarea id="feelingNote" name="note" class="bg-gray-700 rounded px-3 py-2 text-white w-full" rows="3"></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-400 mb-1">Tag (opcional)</label>
-                    <input type="text" id="feelingTag" name="feeling_tag" class="bg-gray-700 rounded px-3 py-2 text-white w-full" placeholder="ex: confortável, quente, frio">
-                </div>
-                <button type="submit" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded text-white">Salvar</button>
-            </form>
         </div>
     </div>
 

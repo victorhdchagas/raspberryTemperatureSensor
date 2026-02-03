@@ -37,6 +37,17 @@ export function initSettingsForm() {
         })
         .then(data => {
             if (data && data.sensorIntervalMinutes) {
+                return fetchAPI('/api/admin/restart-sensor', {
+                    method: 'POST'
+                });
+            }
+            return null;
+        })
+        .then(response => {
+            if (response && response.message) {
+                alert('Configurações salvas e sensor reiniciado com sucesso!');
+                closeSettingsModal();
+            } else {
                 alert('Configurações salvas com sucesso!');
                 closeSettingsModal();
             }

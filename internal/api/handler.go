@@ -1,22 +1,38 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/wutachi/raspberryTemperatureSensor/internal/app"
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
+	"github.com/wutachi/raspberryTemperatureSensor/internal/sensor"
 )
 
 type Handler struct {
-	db     *db.Database
-	config *app.Config
+	db            *db.Database
+	config        *app.Config
+	sensorManager *sensor.SensorManager
 }
 
-func NewHandler(database *db.Database, config *app.Config) *Handler {
+func NewHandler(database *db.Database, config *app.Config, sensorManager *sensor.SensorManager) *Handler {
 	return &Handler{
-		db:     database,
-		config: config,
+		db:            database,
+		config:        config,
+		sensorManager: sensorManager,
 	}
+}
+
+func (h *Handler) restartSensor(w http.ResponseWriter, r *http.Request) {
+	interval := h.config.GetSensorReadingInterval()
+
+	h.sensorManager.Restart(interval)
+	log.Printf("Sensor restarted with interval: %v", interval)
+
+	respondJSON(w, http.StatusOK, map[string]interface{}{
+		"message":         "Sensor restarted successfully",
+		"intervalMinutes": int(interval.Minutes()),
+	})
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
@@ -33,4 +49,5 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/admin/generate-summaries", h.generateSummaries)
 	mux.HandleFunc("GET /api/settings", h.getSettings)
 	mux.HandleFunc("POST /api/settings", h.updateSettings)
+	mux.HandleFunc("POST /api/admin/restart-sensor", h.restartSensor)
 }

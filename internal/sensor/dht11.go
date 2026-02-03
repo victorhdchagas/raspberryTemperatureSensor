@@ -82,6 +82,10 @@ func (d *DHT11) Start(ctx context.Context, interval time.Duration, database *db.
 	}
 }
 
+func (d *DHT11) StartAsync(ctx context.Context, interval time.Duration, database *db.Database) {
+	go d.Start(ctx, interval, database)
+}
+
 func (d *DHT11) Close() error {
 	return nil
 }

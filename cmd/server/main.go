@@ -35,17 +35,18 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	sensorReader, err := sensor.NewDHT11(cfg.Sensor.GPIO)
+	sensorManager, err := sensor.NewSensorManager(database, cfg.Sensor.GPIO)
 	if err != nil {
 		log.Fatalf("Failed to initialize sensor: %v", err)
 	}
-	go sensorReader.Start(context.Background(), cfg.Sensor.Interval, database)
 
 	maintenanceWorker := maintenance.NewWorker(database)
 	go maintenanceWorker.Start(context.Background(), 24*time.Hour)
 
 	appConfig := app.NewConfig()
-	apiHandler := api.NewHandler(database, appConfig)
+	apiHandler := api.NewHandler(database, appConfig, sensorManager)
+
+	sensorManager.Start(cfg.Sensor.Interval)
 
 	mux := http.NewServeMux()
 	apiHandler.RegisterRoutes(mux)
