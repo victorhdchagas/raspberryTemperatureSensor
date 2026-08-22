@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
+	"github.com/wutachi/raspberryTemperatureSensor/internal/weather"
 )
 
 type Reading struct {
@@ -19,12 +20,13 @@ type Reading struct {
 
 type DHT11 struct {
 	pinName string
+	weather *weather.Client
 }
 
-func NewDHT11(pinName string) (*DHT11, error) {
-	// We no longer need periph.io here.
+func NewDHT11(pinName string, weatherClient *weather.Client) (*DHT11, error) {
 	return &DHT11{
 		pinName: pinName,
+		weather: weatherClient,
 	}, nil
 }
 
@@ -61,12 +63,25 @@ func (d *DHT11) Start(ctx context.Context, interval time.Duration, database *db.
 			return
 		}
 
-		if err := database.InsertMetric(temp, humidity); err != nil {
+		var tempExt *float64
+		if d.weather != nil {
+			if ext, wErr := d.weather.GetTemp(); wErr != nil {
+				log.Printf("Warning: could not fetch external temp: %v", wErr)
+			} else {
+				tempExt = ext
+			}
+		}
+
+		if err := database.InsertMetric(temp, humidity, tempExt); err != nil {
 			log.Printf("Error inserting metric: %v", err)
 			return
 		}
 
-		log.Printf("Metric saved: Temp=%.1f°C, Humidity=%.1f%%", temp, humidity)
+		if tempExt != nil {
+			log.Printf("Metric saved: Temp=%.1f°C, Humidity=%.1f%%, Ext=%.1f°C", temp, humidity, *tempExt)
+		} else {
+			log.Printf("Metric saved: Temp=%.1f°C, Humidity=%.1f%%", temp, humidity)
+		}
 	}
 
 	initialRead()

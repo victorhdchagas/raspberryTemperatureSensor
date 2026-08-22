@@ -1,26 +1,27 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
-func (d *Database) InsertMetric(temp, humidity float64) error {
+func (d *Database) InsertMetric(temp, humidity float64, tempExt *float64) error {
 	_, err := d.db.Exec(
-		"INSERT INTO raw_metrics (temp, humidity) VALUES (?, ?)",
-		temp, humidity,
+		"INSERT INTO raw_metrics (temp, humidity, temp_ext) VALUES (?, ?, ?)",
+		temp, humidity, tempExt,
 	)
 	return err
 }
 
 func (d *Database) GetLatestMetric() (*RawMetric, error) {
 	row := d.db.QueryRow(
-		"SELECT id, timestamp, temp, humidity FROM raw_metrics ORDER BY timestamp DESC LIMIT 1",
+		"SELECT id, timestamp, temp, humidity, temp_ext FROM raw_metrics ORDER BY timestamp DESC LIMIT 1",
 	)
 
 	var metric RawMetric
-	err := row.Scan(&metric.ID, &metric.Timestamp, &metric.Temp, &metric.Humidity)
+	err := row.Scan(&metric.ID, &metric.Timestamp, &metric.Temp, &metric.Humidity, &metric.TempExt)
 	if err != nil {
-		if err == nil {
+		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
@@ -31,7 +32,7 @@ func (d *Database) GetLatestMetric() (*RawMetric, error) {
 
 func (d *Database) GetMetricsByDateRange(start, end time.Time) ([]RawMetric, error) {
 	rows, err := d.db.Query(
-		"SELECT id, timestamp, temp, humidity FROM raw_metrics WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp ASC",
+		"SELECT id, timestamp, temp, humidity, temp_ext FROM raw_metrics WHERE timestamp BETWEEN ? AND ? ORDER BY timestamp ASC",
 		start, end,
 	)
 	if err != nil {
@@ -42,7 +43,7 @@ func (d *Database) GetMetricsByDateRange(start, end time.Time) ([]RawMetric, err
 	var metrics []RawMetric
 	for rows.Next() {
 		var metric RawMetric
-		if err := rows.Scan(&metric.ID, &metric.Timestamp, &metric.Temp, &metric.Humidity); err != nil {
+		if err := rows.Scan(&metric.ID, &metric.Timestamp, &metric.Temp, &metric.Humidity, &metric.TempExt); err != nil {
 			return nil, err
 		}
 		metrics = append(metrics, metric)

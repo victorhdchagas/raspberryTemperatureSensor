@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
+	"github.com/wutachi/raspberryTemperatureSensor/internal/weather"
 )
 
 type SensorManager struct {
@@ -17,8 +18,8 @@ type SensorManager struct {
 	mu       sync.RWMutex
 }
 
-func NewSensorManager(database *db.Database, gpioPin string) (*SensorManager, error) {
-	reader, err := NewDHT11(gpioPin)
+func NewSensorManager(database *db.Database, gpioPin string, weatherClient *weather.Client) (*SensorManager, error) {
+	reader, err := NewDHT11(gpioPin, weatherClient)
 	if err != nil {
 		return nil, err
 	}

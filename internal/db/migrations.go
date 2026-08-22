@@ -6,7 +6,8 @@ func GetMigrations() []string {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 			temp REAL NOT NULL,
-			humidity REAL NOT NULL
+			humidity REAL NOT NULL,
+			temp_ext REAL
 		)`,
 		`CREATE TABLE IF NOT EXISTS daily_summaries (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,

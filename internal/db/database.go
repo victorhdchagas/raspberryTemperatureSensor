@@ -36,5 +36,31 @@ func (d *Database) Migrate() error {
 		}
 	}
 
-	return nil
+	return d.ensureTempExtColumn()
+}
+
+// ensureTempExtColumn adiciona a coluna temp_ext em bancos que já existiam
+// antes dessa feature. Bancos novos já a criam no CREATE TABLE.
+func (d *Database) ensureTempExtColumn() error {
+	rows, err := d.db.Query(`PRAGMA table_info(raw_metrics)`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dflt sql.NullString
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); err != nil {
+			return err
+		}
+		if name == "temp_ext" {
+			return nil // já existe
+		}
+	}
+
+	_, err = d.db.Exec(`ALTER TABLE raw_metrics ADD COLUMN temp_ext REAL`)
+	return err
 }

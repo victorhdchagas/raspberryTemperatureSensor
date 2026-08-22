@@ -7,6 +7,7 @@ type RawMetric struct {
 	Timestamp time.Time `json:"timestamp"`
 	Temp      float64   `json:"temp"`
 	Humidity  float64   `json:"humidity"`
+	TempExt   *float64  `json:"temp_ext,omitempty"`
 }
 
 type DailySummary struct {

@@ -15,6 +15,7 @@ import (
 	"github.com/wutachi/raspberryTemperatureSensor/internal/db"
 	"github.com/wutachi/raspberryTemperatureSensor/internal/maintenance"
 	"github.com/wutachi/raspberryTemperatureSensor/internal/sensor"
+	"github.com/wutachi/raspberryTemperatureSensor/internal/weather"
 	"github.com/wutachi/raspberryTemperatureSensor/pkg/web"
 )
 
@@ -35,7 +36,10 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	sensorManager, err := sensor.NewSensorManager(database, cfg.Sensor.GPIO)
+	weatherClient := weather.New(cfg.Weather.Lat, cfg.Weather.Lon)
+	log.Printf("Weather client: external temp from %.4f, %.4f (cache 1h)", cfg.Weather.Lat, cfg.Weather.Lon)
+
+	sensorManager, err := sensor.NewSensorManager(database, cfg.Sensor.GPIO, weatherClient)
 	if err != nil {
 		log.Fatalf("Failed to initialize sensor: %v", err)
 	}
